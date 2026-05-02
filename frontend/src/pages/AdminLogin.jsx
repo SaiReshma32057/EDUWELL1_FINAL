@@ -21,9 +21,11 @@ function getApiErrorMessage(payload, fallback) {
 }
 
 function createCaptcha() {
-  const left = Math.floor(Math.random() * 9) + 1;
-  const right = Math.floor(Math.random() * 9) + 1;
-  return { challenge: `${left} + ${right}`, answer: left + right };
+  const words = ['river', 'orchid', 'sunset', 'breeze', 'planet', 'garden', 'bridge', 'cloud', 'mountain', 'harbor', 'lighthouse', 'meadow'];
+  const w = words[Math.floor(Math.random() * words.length)];
+  // scramble letters
+  const shuffled = w.split('').sort(() => Math.random() - 0.5).join('');
+  return { challenge: shuffled, answer: w };
 }
 
 export default function AdminLogin({ onLogin }) {
@@ -49,11 +51,11 @@ export default function AdminLogin({ onLogin }) {
       return;
     }
 
-    if (Number(captchaInput) !== captcha.answer) {
-      setError('Captcha verification failed. Try again.');
-      resetCaptcha();
-      return;
-    }
+      if (!captchaInput || String(captchaInput).trim().toLowerCase() !== String(captcha.answer).toLowerCase()) {
+        setError('Captcha verification failed. Try again.');
+        resetCaptcha();
+        return;
+      }
 
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPassword = password.trim();
@@ -172,11 +174,11 @@ export default function AdminLogin({ onLogin }) {
                 </button>
               </div>
               <input
-                type="number"
+                type="text"
                 value={captchaInput}
                 onChange={(e) => setCaptchaInput(e.target.value)}
                 className="w-full px-6 py-4 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium text-stone-700"
-                placeholder="Enter result"
+                placeholder="Type the original word"
                 required
               />
             </div>

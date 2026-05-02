@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ShieldPlus } from 'lucide-react';
@@ -29,6 +29,9 @@ export default function AdminSignup({ onLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [captchaQuestion, setCaptchaQuestion] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,6 +43,11 @@ export default function AdminSignup({ onLogin }) {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      return;
+    }
+
+    if (!captchaInput || String(captchaInput).trim().toLowerCase() !== String(captchaAnswer).toLowerCase()) {
+      setError('Captcha answer is incorrect. Please try again.');
       return;
     }
 
@@ -102,6 +110,18 @@ export default function AdminSignup({ onLogin }) {
       setSubmitting(false);
     }
   };
+
+  function generateCaptcha() {
+    const words = ['river', 'orchid', 'sunset', 'breeze', 'planet', 'garden', 'bridge', 'cloud', 'mountain', 'harbor'];
+    const w = words[Math.floor(Math.random() * words.length)];
+    setCaptchaQuestion(w);
+    setCaptchaAnswer(w);
+    setCaptchaInput('');
+  }
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-brand-bg">
@@ -173,6 +193,30 @@ export default function AdminSignup({ onLogin }) {
                 placeholder="••••••••"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Captcha</label>
+              <div className="flex items-center gap-3">
+                <div className="px-4 py-3 bg-stone-50 border border-stone-100 rounded-2xl text-stone-700 font-medium">
+                  {captchaQuestion}
+                </div>
+                <input
+                  type="text"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  className="flex-1 px-4 py-3 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium text-stone-700"
+                  placeholder="Your answer"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={generateCaptcha}
+                  className="px-4 py-3 bg-stone-100 text-stone-700 rounded-2xl hover:bg-stone-200 transition-all"
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">

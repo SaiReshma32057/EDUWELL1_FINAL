@@ -34,10 +34,24 @@ export default function LandingPage({ onLogin }) {
     age: '', 
     role: '' 
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [captchaQuestion, setCaptchaQuestion] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
     setSignUpError('');
+
+    if (formData.password !== confirmPassword) {
+      setSignUpError('Passwords do not match.');
+      return;
+    }
+
+    if (!captchaInput || String(captchaInput).trim().toLowerCase() !== String(captchaAnswer).toLowerCase()) {
+      setSignUpError('Captcha answer is incorrect. Please try again.');
+      return;
+    }
 
     const normalizedName = formData.name.trim();
     const normalizedEmail = formData.email.trim().toLowerCase();
@@ -88,6 +102,8 @@ export default function LandingPage({ onLogin }) {
       setShowSignUp(false);
       setSignUpStep(1);
       setFormData({ name: '', username: '', email: '', password: '', age: '', role: '' });
+      setConfirmPassword('');
+      setCaptchaInput('');
       navigate(role === 'ADMIN' ? '/admin-dashboard' : '/student-dashboard', { replace: true });
     } catch (err) {
       if (err instanceof TypeError) {
@@ -99,6 +115,28 @@ export default function LandingPage({ onLogin }) {
       setSigningUp(false);
     }
   };
+
+  function generateCaptcha() {
+    const words = ['river', 'orchid', 'sunset', 'breeze', 'planet', 'garden', 'bridge', 'cloud', 'mountain', 'harbor'];
+    const w = words[Math.floor(Math.random() * words.length)];
+    setCaptchaQuestion(w);
+    setCaptchaAnswer(w);
+    setCaptchaInput('');
+  }
+
+  React.useEffect(() => {
+    if (showSignUp && signUpStep === 2) generateCaptcha();
+  }, [showSignUp, signUpStep]);
+
+  React.useEffect(() => {
+    if (!showSignUp) {
+      setFormData({ name: '', username: '', email: '', password: '', age: '', role: '' });
+      setConfirmPassword('');
+      setCaptchaInput('');
+      setSignUpStep(1);
+      setSignUpError('');
+    }
+  }, [showSignUp]);
 
   return (
     <div className="min-h-screen bg-brand-bg relative">
@@ -466,6 +504,45 @@ export default function LandingPage({ onLogin }) {
                             required
                             value={formData.password}
                             onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            className="w-full pl-14 pr-6 py-3 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-sm"
+                            placeholder="••••••••"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Captcha</label>
+                        <div className="flex items-center gap-3">
+                          <div className="px-4 py-3 bg-stone-50 border border-stone-100 rounded-2xl text-stone-700 font-medium">
+                            {captchaQuestion}
+                          </div>
+                          <input
+                            type="text"
+                            value={captchaInput}
+                            onChange={(e) => setCaptchaInput(e.target.value)}
+                            className="flex-1 px-4 py-3 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-sm"
+                            placeholder="Your answer"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={generateCaptcha}
+                            className="px-4 py-3 bg-stone-100 text-stone-700 rounded-2xl hover:bg-stone-200 transition-all"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Confirm Password</label>
+                        <div className="relative">
+                          <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                          <input 
+                            type="password"
+                            required
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full pl-14 pr-6 py-3 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-sm"
                             placeholder="••••••••"
                           />

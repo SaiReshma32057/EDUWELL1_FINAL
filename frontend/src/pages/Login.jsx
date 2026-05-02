@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Heart } from 'lucide-react';
 import API_BASE_URL from '../api/config';
@@ -24,6 +24,19 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaSeed, setCaptchaSeed] = useState(0);
+  
+  function createCaptcha() {
+    const words = ['river', 'orchid', 'sunset', 'breeze', 'planet', 'garden', 'bridge', 'cloud', 'mountain', 'harbor', 'lighthouse', 'meadow'];
+    const w = words[Math.floor(Math.random() * words.length)];
+    const shuffled = w.split('').sort(() => Math.random() - 0.5).join('');
+    return { challenge: shuffled, answer: w };
+  }
+
+  const captcha = React.useMemo(() => createCaptcha(), [captchaSeed]);
+
+  const resetCaptcha = () => { setCaptchaSeed((s) => s + 1); setCaptchaInput(''); };
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -35,6 +48,12 @@ export default function Login({ onLogin }) {
 
     if (!normalizedEmail || !normalizedPassword) {
       setError('Email and password are required.');
+      return;
+    }
+
+    if (!captchaInput || String(captchaInput).trim().toLowerCase() !== String(captcha.answer).toLowerCase()) {
+      setError('Captcha verification failed. Try again.');
+      resetCaptcha();
       return;
     }
 
@@ -160,7 +179,7 @@ export default function Login({ onLogin }) {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Password</label>
                 <input
@@ -169,6 +188,30 @@ export default function Login({ onLogin }) {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-6 py-4 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all font-medium text-stone-700"
                   placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Captcha</label>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="px-4 py-3 rounded-2xl bg-stone-100 text-stone-700 font-bold tracking-wider min-w-28 text-center">
+                    {captcha.challenge}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetCaptcha}
+                    className="p-3 rounded-2xl border border-stone-200 text-stone-500 hover:text-brand-primary hover:border-brand-primary transition-colors"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  className="w-full px-6 py-4 bg-stone-50 border border-stone-100 rounded-2xl outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all font-medium text-stone-700"
+                  placeholder="Type the original word"
                   required
                 />
               </div>
@@ -181,6 +224,13 @@ export default function Login({ onLogin }) {
               Enter Sanctuary
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-stone-500">
+              Don't have an account?{' '}
+              <Link to="/" className="font-semibold text-brand-primary hover:underline">Sign up</Link>
+            </p>
+          </div>
 
           <div className="mt-10 pt-10 border-t border-stone-50 text-center">
             <p className="text-stone-400 text-xs font-medium italic">
